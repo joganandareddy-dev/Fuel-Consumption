@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # 1. MySQL 8.0 Database Container
+  db:
+    image: mysql:8.0
+    container_name: fuel_mysql_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: fuel_db
+      MYSQL_USER: fuel_user
+      MYSQL_PASSWORD: fuel_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - fuel_net
+
+  # 2. Flask REST API Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fuel_backend
+    restart: unless-stopped
+    environment:
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_USER: fuel_user
+      MYSQL_PASSWORD: fuel_password
+      MYSQL_DB: fuel_db
+      PORT: 5000
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    networks:
+      - fuel_net
+
+  # 3. React Vite Frontend with Nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: /api
+    container_name: fuel_frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - fuel_net
+
+volumes:
+  mysql_data:
+
+networks:
+  fuel_net:
+    driver: bridge
