@@ -1,6 +1,14 @@
 import type { Vehicle, FuelRecord, DashboardData, DatabaseStatus, ReportsData } from '../types';
 
-const API_BASE_URL = (import.meta.env.VITE_API_URL as string) || 'http://127.0.0.1:5000/api';
+let rawApiUrl = (import.meta.env.VITE_API_URL as string) || '';
+if (!rawApiUrl) {
+  rawApiUrl = 'http://127.0.0.1:5000/api';
+} else if (!rawApiUrl.startsWith('http://') && !rawApiUrl.startsWith('https://')) {
+  rawApiUrl = `https://${rawApiUrl}/api`;
+} else if (!rawApiUrl.endsWith('/api') && !rawApiUrl.endsWith('/api/')) {
+  rawApiUrl = `${rawApiUrl.replace(/\/$/, '')}/api`;
+}
+const API_BASE_URL = rawApiUrl;
 
 class ApiService {
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {

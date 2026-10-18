@@ -2,7 +2,7 @@ services:
   # Python Flask Backend Web Service
   - type: web
     name: fuel-consumption-backend
-    env: python
+    runtime: python
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2
@@ -23,14 +23,13 @@ services:
       - key: MYSQL_DB
         value: fuel_db
 
-  # React Vite Frontend Static Site
+  # React Vite Frontend Static Site (Static sites are free by default on Render and must not specify a plan)
   - type: web
     name: fuel-consumption-frontend
-    env: static
+    runtime: static
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
-    plan: free
     routes:
       - type: rewrite
         source: /*
